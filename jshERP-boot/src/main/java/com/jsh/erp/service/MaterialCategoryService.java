@@ -26,7 +26,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class MaterialCategoryService {
@@ -38,6 +40,8 @@ public class MaterialCategoryService {
     private MaterialCategoryMapperEx materialCategoryMapperEx;
     @Resource
     private UserService userService;
+    @Resource
+    private UserBusinessService userBusinessService;
     @Resource
     private LogService logService;
     @Resource
@@ -85,6 +89,63 @@ public class MaterialCategoryService {
             JshException.readFail(logger, e);
         }
         return list;
+    }
+
+    private List<Long> parseUserBusinessValueToList(String ubValue) {
+        List<Long> idList = new ArrayList<>();
+        if(StringUtil.isEmpty(ubValue) || ubValue.length() < 2) {
+            return idList;
+        }
+        String ubStr = ubValue.substring(1, ubValue.length() - 1);
+        if(StringUtil.isEmpty(ubStr)) {
+            return idList;
+        }
+        String[] ubArr = ubStr.split("\\]\\[");
+        for (String idStr : ubArr) {
+            if(StringUtil.isNotEmpty(idStr)) {
+                idList.add(Long.parseLong(idStr));
+            }
+        }
+        return idList;
+    }
+
+    private Set<Long> getCurrentUserAuthorizedCategoryIdSet() throws Exception {
+        Set<Long> categoryIdSet = new LinkedHashSet<>();
+        User currentUser = userService.getCurrentUser();
+        if(currentUser == null || currentUser.getId() == null) {
+            return categoryIdSet;
+        }
+        String ubValue = userBusinessService.getUBValueByTypeAndKeyId("UserMaterialCategory", currentUser.getId().toString());
+        List<Long> rootCategoryIds = parseUserBusinessValueToList(ubValue);
+        for (Long categoryId : rootCategoryIds) {
+            if(categoryId == null) {
+                continue;
+            }
+            categoryIdSet.add(categoryId);
+            List<MaterialCategory> childList = getAllList(categoryId);
+            if(childList != null) {
+                for (MaterialCategory mc : childList) {
+                    categoryIdSet.add(mc.getId());
+                }
+            }
+        }
+        return categoryIdSet;
+    }
+
+    private List<TreeNode> filterTreeNodesByAuthorizedCategory(List<TreeNode> treeNodes, Set<Long> authorizedCategoryIdSet) {
+        List<TreeNode> result = new ArrayList<>();
+        if(treeNodes == null || treeNodes.isEmpty()) {
+            return result;
+        }
+        for (TreeNode node : treeNodes) {
+            List<TreeNode> children = filterTreeNodesByAuthorizedCategory(node.getChildren(), authorizedCategoryIdSet);
+            boolean currentNodeAllowed = node.getId() != null && authorizedCategoryIdSet.contains(node.getId());
+            if(currentNodeAllowed || !children.isEmpty()) {
+                node.setChildren(children);
+                result.add(node);
+            }
+        }
+        return result;
     }
 
     public List<MaterialCategory> getMCList(Long parentId)throws Exception {
@@ -241,6 +302,10 @@ public class MaterialCategoryService {
         List<TreeNode> list=null;
         try{
             list=materialCategoryMapperEx.getNodeTree(id);
+            Set<Long> authorizedCategoryIdSet = getCurrentUserAuthorizedCategoryIdSet();
+            if(!authorizedCategoryIdSet.isEmpty()) {
+                list = filterTreeNodesByAuthorizedCategory(list, authorizedCategoryIdSet);
+            }
         }catch(Exception e){
             JshException.readFail(logger, e);
         }

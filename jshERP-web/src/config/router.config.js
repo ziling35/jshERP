@@ -58,8 +58,68 @@ export const constantRouterMap = [
     ]
   },
   {
+    path: '/channel/order',
+    name: 'channelOrder',
+    hidden: true,
+    meta: { title: '渠道订货端' },
+    component: () => import('@/views/channel/ChannelOrder')
+  },
+  {
+    path: '/channel/orders',
+    name: 'channelOrders',
+    hidden: true,
+    meta: { title: '订单中心' },
+    component: () => import('@/views/channel/OrderCenter')
+  },
+  {
+    path: '/channel/order-detail',
+    name: 'channelOrderDetail',
+    hidden: true,
+    meta: { title: '订单详情' },
+    component: () => import('@/views/channel/OrderDetail')
+  },
+  {
+    path: '/customer',
+    name: 'customerPortal',
+    component: () => import('@/components/layouts/CustomerLayout'),
+    redirect: '/customer/dashboard',
+    children: [
+      {
+        path: 'dashboard',
+        name: 'customerDashboard',
+        meta: { title: '仪表盘' },
+        component: () => import('@/views/customer/Dashboard')
+      },
+      {
+        path: 'products',
+        name: 'customerProducts',
+        meta: { title: '商品浏览' },
+        component: () => import('@/views/customer/Products')
+      },
+      {
+        path: 'cart',
+        name: 'customerCart',
+        meta: { title: '购物车' },
+        component: () => import('@/views/customer/Cart')
+      },
+      {
+        path: 'orders',
+        name: 'customerOrders',
+        meta: { title: '我的订单' },
+        component: () => import('@/views/customer/Orders')
+      },
+      {
+        path: 'order/:id',
+        name: 'customerOrderDetail',
+        meta: { title: '订单详情' },
+        component: () => import('@/views/customer/OrderDetail')
+      }
+    ]
+  },
+  {
     path: '/404',
     component: () => import(/* webpackChunkName: "fail" */ '@/views/exception/404')
   },
-
+ 
 ]
+

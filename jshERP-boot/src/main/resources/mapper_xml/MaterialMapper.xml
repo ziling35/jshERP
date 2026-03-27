@@ -14,6 +14,7 @@
     <result column="unit" jdbcType="VARCHAR" property="unit" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
     <result column="img_name" jdbcType="VARCHAR" property="imgName" />
+    <result column="video_url" jdbcType="VARCHAR" property="videoUrl" />
     <result column="unit_id" jdbcType="BIGINT" property="unitId" />
     <result column="expiry_num" jdbcType="INTEGER" property="expiryNum" />
     <result column="weight" jdbcType="DECIMAL" property="weight" />
@@ -88,7 +89,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, category_id, name, mfrs, model, standard, brand, mnemonic, color, unit, remark, 
-    img_name, unit_id, expiry_num, weight, enabled, other_field1, other_field2, other_field3, 
+    img_name, video_url, unit_id, expiry_num, weight, enabled, other_field1, other_field2, other_field3, 
     enable_serial_number, enable_batch_number, position, attribute, tenant_id, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.MaterialExample" resultMap="BaseResultMap">
@@ -126,20 +127,20 @@
       mfrs, model, standard, 
       brand, mnemonic, color, 
       unit, remark, img_name, 
-      unit_id, expiry_num, weight, 
-      enabled, other_field1, other_field2, 
-      other_field3, enable_serial_number, enable_batch_number, 
-      position, attribute, tenant_id, 
-      delete_flag)
+      video_url, unit_id, expiry_num, 
+      weight, enabled, other_field1, 
+      other_field2, other_field3, enable_serial_number, 
+      enable_batch_number, position, attribute, 
+      tenant_id, delete_flag)
     values (#{id,jdbcType=BIGINT}, #{categoryId,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, 
       #{mfrs,jdbcType=VARCHAR}, #{model,jdbcType=VARCHAR}, #{standard,jdbcType=VARCHAR}, 
       #{brand,jdbcType=VARCHAR}, #{mnemonic,jdbcType=VARCHAR}, #{color,jdbcType=VARCHAR}, 
       #{unit,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{imgName,jdbcType=VARCHAR}, 
-      #{unitId,jdbcType=BIGINT}, #{expiryNum,jdbcType=INTEGER}, #{weight,jdbcType=DECIMAL}, 
-      #{enabled,jdbcType=BIT}, #{otherField1,jdbcType=VARCHAR}, #{otherField2,jdbcType=VARCHAR}, 
-      #{otherField3,jdbcType=VARCHAR}, #{enableSerialNumber,jdbcType=VARCHAR}, #{enableBatchNumber,jdbcType=VARCHAR}, 
-      #{position,jdbcType=VARCHAR}, #{attribute,jdbcType=VARCHAR}, #{tenantId,jdbcType=BIGINT}, 
-      #{deleteFlag,jdbcType=VARCHAR})
+      #{videoUrl,jdbcType=VARCHAR}, #{unitId,jdbcType=BIGINT}, #{expiryNum,jdbcType=INTEGER}, 
+      #{weight,jdbcType=DECIMAL}, #{enabled,jdbcType=BIT}, #{otherField1,jdbcType=VARCHAR}, 
+      #{otherField2,jdbcType=VARCHAR}, #{otherField3,jdbcType=VARCHAR}, #{enableSerialNumber,jdbcType=VARCHAR}, 
+      #{enableBatchNumber,jdbcType=VARCHAR}, #{position,jdbcType=VARCHAR}, #{attribute,jdbcType=VARCHAR}, 
+      #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.Material">
     insert into jsh_material
@@ -179,6 +180,9 @@
       </if>
       <if test="imgName != null">
         img_name,
+      </if>
+      <if test="videoUrl != null">
+        video_url,
       </if>
       <if test="unitId != null">
         unit_id,
@@ -256,6 +260,9 @@
       </if>
       <if test="imgName != null">
         #{imgName,jdbcType=VARCHAR},
+      </if>
+      <if test="videoUrl != null">
+        #{videoUrl,jdbcType=VARCHAR},
       </if>
       <if test="unitId != null">
         #{unitId,jdbcType=BIGINT},
@@ -343,6 +350,9 @@
       <if test="record.imgName != null">
         img_name = #{record.imgName,jdbcType=VARCHAR},
       </if>
+      <if test="record.videoUrl != null">
+        video_url = #{record.videoUrl,jdbcType=VARCHAR},
+      </if>
       <if test="record.unitId != null">
         unit_id = #{record.unitId,jdbcType=BIGINT},
       </if>
@@ -401,6 +411,7 @@
       unit = #{record.unit,jdbcType=VARCHAR},
       remark = #{record.remark,jdbcType=VARCHAR},
       img_name = #{record.imgName,jdbcType=VARCHAR},
+      video_url = #{record.videoUrl,jdbcType=VARCHAR},
       unit_id = #{record.unitId,jdbcType=BIGINT},
       expiry_num = #{record.expiryNum,jdbcType=INTEGER},
       weight = #{record.weight,jdbcType=DECIMAL},
@@ -453,6 +464,9 @@
       </if>
       <if test="imgName != null">
         img_name = #{imgName,jdbcType=VARCHAR},
+      </if>
+      <if test="videoUrl != null">
+        video_url = #{videoUrl,jdbcType=VARCHAR},
       </if>
       <if test="unitId != null">
         unit_id = #{unitId,jdbcType=BIGINT},
@@ -509,6 +523,7 @@
       unit = #{unit,jdbcType=VARCHAR},
       remark = #{remark,jdbcType=VARCHAR},
       img_name = #{imgName,jdbcType=VARCHAR},
+      video_url = #{videoUrl,jdbcType=VARCHAR},
       unit_id = #{unitId,jdbcType=BIGINT},
       expiry_num = #{expiryNum,jdbcType=INTEGER},
       weight = #{weight,jdbcType=DECIMAL},

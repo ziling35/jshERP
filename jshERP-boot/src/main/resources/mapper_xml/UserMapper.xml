@@ -16,6 +16,7 @@
     <result column="status" jdbcType="TINYINT" property="status" />
     <result column="description" jdbcType="VARCHAR" property="description" />
     <result column="remark" jdbcType="VARCHAR" property="remark" />
+    <result column="customer_id" jdbcType="BIGINT" property="customerId" />
     <result column="weixin_open_id" jdbcType="VARCHAR" property="weixinOpenId" />
     <result column="tenant_id" jdbcType="BIGINT" property="tenantId" />
     <result column="delete_flag" jdbcType="VARCHAR" property="deleteFlag" />
@@ -80,7 +81,7 @@
   </sql>
   <sql id="Base_Column_List">
     id, username, login_name, password, leader_flag, position, department, email, phonenum, 
-    ismanager, isystem, status, description, remark, weixin_open_id, tenant_id, delete_flag
+    ismanager, isystem, status, description, remark, customer_id, weixin_open_id, tenant_id, delete_flag
   </sql>
   <select id="selectByExample" parameterType="com.jsh.erp.datasource.entities.UserExample" resultMap="BaseResultMap">
     select
@@ -117,13 +118,13 @@
       password, leader_flag, position, 
       department, email, phonenum, 
       ismanager, isystem, status, 
-      description, remark, weixin_open_id, 
+      description, remark, customer_id, weixin_open_id, 
       tenant_id, delete_flag)
     values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{loginName,jdbcType=VARCHAR}, 
       #{password,jdbcType=VARCHAR}, #{leaderFlag,jdbcType=VARCHAR}, #{position,jdbcType=VARCHAR}, 
       #{department,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{phonenum,jdbcType=VARCHAR}, 
       #{ismanager,jdbcType=TINYINT}, #{isystem,jdbcType=TINYINT}, #{status,jdbcType=TINYINT}, 
-      #{description,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{weixinOpenId,jdbcType=VARCHAR}, 
+      #{description,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{customerId,jdbcType=BIGINT}, #{weixinOpenId,jdbcType=VARCHAR}, 
       #{tenantId,jdbcType=BIGINT}, #{deleteFlag,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="com.jsh.erp.datasource.entities.User">
@@ -170,6 +171,9 @@
       </if>
       <if test="remark != null">
         remark,
+      </if>
+      <if test="customerId != null">
+        customer_id,
       </if>
       <if test="weixinOpenId != null">
         weixin_open_id,
@@ -223,6 +227,9 @@
       </if>
       <if test="remark != null">
         #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="customerId != null">
+        #{customerId,jdbcType=BIGINT},
       </if>
       <if test="weixinOpenId != null">
         #{weixinOpenId,jdbcType=VARCHAR},
@@ -286,6 +293,9 @@
       <if test="record.remark != null">
         remark = #{record.remark,jdbcType=VARCHAR},
       </if>
+      <if test="record.customerId != null">
+        customer_id = #{record.customerId,jdbcType=BIGINT},
+      </if>
       <if test="record.weixinOpenId != null">
         weixin_open_id = #{record.weixinOpenId,jdbcType=VARCHAR},
       </if>
@@ -316,6 +326,7 @@
       status = #{record.status,jdbcType=TINYINT},
       description = #{record.description,jdbcType=VARCHAR},
       remark = #{record.remark,jdbcType=VARCHAR},
+      customer_id = #{record.customerId,jdbcType=BIGINT},
       weixin_open_id = #{record.weixinOpenId,jdbcType=VARCHAR},
       tenant_id = #{record.tenantId,jdbcType=BIGINT},
       delete_flag = #{record.deleteFlag,jdbcType=VARCHAR}
@@ -365,6 +376,9 @@
       <if test="remark != null">
         remark = #{remark,jdbcType=VARCHAR},
       </if>
+      <if test="customerId != null">
+        customer_id = #{customerId,jdbcType=BIGINT},
+      </if>
       <if test="weixinOpenId != null">
         weixin_open_id = #{weixinOpenId,jdbcType=VARCHAR},
       </if>
@@ -392,6 +406,7 @@
       status = #{status,jdbcType=TINYINT},
       description = #{description,jdbcType=VARCHAR},
       remark = #{remark,jdbcType=VARCHAR},
+      customer_id = #{customerId,jdbcType=BIGINT},
       weixin_open_id = #{weixinOpenId,jdbcType=VARCHAR},
       tenant_id = #{tenantId,jdbcType=BIGINT},
       delete_flag = #{deleteFlag,jdbcType=VARCHAR}

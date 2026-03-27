@@ -104,9 +104,12 @@ public class PlatformConfigController extends BaseController {
             String platformKey = "platform_name";
             PlatformConfig platformConfig = platformConfigService.getInfoByKey(platformKey);
             res = platformConfig.getPlatformValue();
+            if(StringUtil.isEmpty(res) || "ERP系统".equals(res) || "管伊佳ERP".equals(res)) {
+                res = "ERP";
+            }
         } catch(Exception e){
             logger.error(e.getMessage(), e);
-            res = "ERP系统";
+            res = "ERP";
         }
         return res;
     }

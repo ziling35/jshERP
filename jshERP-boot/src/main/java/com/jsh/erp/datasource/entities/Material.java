@@ -27,7 +27,10 @@ public class Material {
 
     private String imgName;
 
+    private String videoUrl;
+ 
     private Long unitId;
+
 
     private Integer expiryNum;
 
@@ -144,12 +147,21 @@ public class Material {
     public String getImgName() {
         return imgName;
     }
-
+ 
     public void setImgName(String imgName) {
         this.imgName = imgName == null ? null : imgName.trim();
     }
 
+    public String getVideoUrl() {
+        return videoUrl;
+    }
+
+    public void setVideoUrl(String videoUrl) {
+        this.videoUrl = videoUrl == null ? null : videoUrl.trim();
+    }
+ 
     public Long getUnitId() {
+
         return unitId;
     }
 

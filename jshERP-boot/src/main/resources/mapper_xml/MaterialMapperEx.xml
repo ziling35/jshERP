@@ -160,6 +160,9 @@
             <if test="imgName != null">
                 img_name,
             </if>
+            <if test="videoUrl != null">
+                video_url,
+            </if>
             <if test="unitId != null">
                 unit_id,
             </if>
@@ -236,6 +239,9 @@
             </if>
             <if test="imgName != null">
                 #{imgName,jdbcType=VARCHAR},
+            </if>
+            <if test="videoUrl != null">
+                #{videoUrl,jdbcType=VARCHAR},
             </if>
             <if test="unitId != null">
                 #{unitId,jdbcType=BIGINT},

@@ -73,6 +73,12 @@ const user = {
               //前端7天有效期，后端默认1天，只要用户在1天内有访问页面就可以一直续期直到7天结束
               Vue.ls.set(ACCESS_TOKEN, result.token, 7 * 24 * 60 * 60 * 1000)
               Vue.ls.set(USER_INFO, result.user, 7 * 24 * 60 * 60 * 1000)
+              // 存储客户标识
+              if (result.user.customerId) {
+                Vue.ls.set('customerId', result.user.customerId, 7 * 24 * 60 * 60 * 1000)
+              } else {
+                Vue.ls.remove('customerId')
+              }
               commit('SET_TOKEN', result.token)
             }
             commit('SET_INFO', userInfo)
@@ -126,6 +132,7 @@ const user = {
         Vue.ls.remove(USER_INFO)
         Vue.ls.remove(UI_CACHE_DB_DICT_DATA)
         Vue.ls.remove(CACHE_INCLUDED_ROUTES)
+        Vue.ls.remove('customerId')
         logout().then(() => {
           resolve()
         }).catch(() => {

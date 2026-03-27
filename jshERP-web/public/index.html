@@ -248,7 +248,7 @@
         if (ajax.readyState===4 &&ajax.status===200) {
           res = ajax.responseText;
         } else {
-          res = 'ERP系统';
+          res = 'ERP';
         }
       }
       ajax.open('get', url, false);
@@ -258,8 +258,8 @@
     window._CONFIG = {};
     window._CONFIG['domianURL'] = '/jshERP-boot';
     let statisticsCode = '1cd9bcbaae133f03a6eb19da6579aaba'
-    window.SYS_TITLE = getPlatform("name");
-    window.SYS_URL = getPlatform("url");
+    window.SYS_TITLE = 'ERP';
+    window.SYS_URL = '#';
     window._statistics = 'https://hm.baidu.com/hm.js?' + statisticsCode
     document.title = window.SYS_TITLE;
     //statistics
@@ -295,7 +295,7 @@ translate.language.setLocal('chinese_simplified');
 translate.service.use('client.edge');
 //翻译自定义
 translate.nomenclature.append('chinese_simplified','english',`
-管伊佳ERP=GuanYiJia
+ERP=ERP
 `)
 //开启html页面变化的监控，对变化部分会进行自动翻译
 translate.listener.start();

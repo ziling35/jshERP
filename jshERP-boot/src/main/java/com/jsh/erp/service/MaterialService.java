@@ -50,6 +50,8 @@ public class MaterialService {
     @Resource
     private UserService userService;
     @Resource
+    private UserBusinessService userBusinessService;
+    @Resource
     private DepotItemMapperEx depotItemMapperEx;
     @Resource
     private DepotItemService depotItemService;
@@ -115,6 +117,78 @@ public class MaterialService {
         return list;
     }
 
+    private List<Long> parseUserBusinessValueToList(String ubValue) {
+        List<Long> idList = new ArrayList<>();
+        if(StringUtil.isEmpty(ubValue) || ubValue.length() < 2) {
+            return idList;
+        }
+        String ubStr = ubValue.substring(1, ubValue.length() - 1);
+        if(StringUtil.isEmpty(ubStr)) {
+            return idList;
+        }
+        String[] ubArr = ubStr.split("\\]\\[");
+        for (String idStr : ubArr) {
+            if(StringUtil.isNotEmpty(idStr)) {
+                idList.add(Long.parseLong(idStr));
+            }
+        }
+        return idList;
+    }
+
+    private List<Long> expandCategoryIds(List<Long> rootCategoryIds) throws Exception {
+        Set<Long> categoryIdSet = new LinkedHashSet<>();
+        if(rootCategoryIds == null || rootCategoryIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        for (Long categoryId : rootCategoryIds) {
+            if(categoryId == null) {
+                continue;
+            }
+            categoryIdSet.add(categoryId);
+            List<MaterialCategory> childList = materialCategoryService.getAllList(categoryId);
+            if(childList != null) {
+                for (MaterialCategory mc : childList) {
+                    categoryIdSet.add(mc.getId());
+                }
+            }
+        }
+        return new ArrayList<>(categoryIdSet);
+    }
+
+    private List<Long> getCurrentUserAuthorizedCategoryIds() throws Exception {
+        User currentUser = userService.getCurrentUser();
+        if(currentUser == null || currentUser.getId() == null) {
+            return new ArrayList<>();
+        }
+        String ubValue = userBusinessService.getUBValueByTypeAndKeyId("UserMaterialCategory", currentUser.getId().toString());
+        return expandCategoryIds(parseUserBusinessValueToList(ubValue));
+    }
+
+    private boolean hasCurrentUserMaterialCategoryLimit() throws Exception {
+        return !getCurrentUserAuthorizedCategoryIds().isEmpty();
+    }
+
+    private List<Long> getEffectiveCategoryIds(List<Long> requestedCategoryIds) throws Exception {
+        List<Long> authorizedCategoryIds = getCurrentUserAuthorizedCategoryIds();
+        if(authorizedCategoryIds.isEmpty()) {
+            return requestedCategoryIds == null ? new ArrayList<>() : requestedCategoryIds;
+        }
+        if(requestedCategoryIds == null || requestedCategoryIds.isEmpty()) {
+            return authorizedCategoryIds;
+        }
+        Set<Long> effectiveCategoryIdSet = new LinkedHashSet<>(authorizedCategoryIds);
+        effectiveCategoryIdSet.retainAll(new LinkedHashSet<>(requestedCategoryIds));
+        return new ArrayList<>(effectiveCategoryIdSet);
+    }
+
+    private List<Long> getEffectiveCategoryIdsByCategoryId(Long categoryId) throws Exception {
+        List<Long> requestedCategoryIds = new ArrayList<>();
+        if(categoryId != null) {
+            requestedCategoryIds = getListByParentId(categoryId);
+        }
+        return getEffectiveCategoryIds(requestedCategoryIds);
+    }
+
     public List<MaterialVo4Unit> select(String materialParam, String standard, String model, String color, String brand, String mfrs,
                                         String otherField1, String otherField2, String otherField3, String weight, String expiryNum, String enableSerialNumber,
                                         String enableBatchNumber, String position, String enabled, String remark, String categoryId,
@@ -126,9 +200,9 @@ public class MaterialService {
         }
         List<MaterialVo4Unit> list = new ArrayList<>();
         try{
-            List<Long> idList = new ArrayList<>();
-            if(StringUtil.isNotEmpty(categoryId)){
-                idList = getListByParentId(Long.parseLong(categoryId));
+            List<Long> idList = getEffectiveCategoryIdsByCategoryId(StringUtil.isNotEmpty(categoryId) ? Long.parseLong(categoryId) : null);
+            if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+                return list;
             }
             PageUtils.startPage();
             list= materialMapperEx.selectByConditionMaterial(materialParam, standard, model, color, brand, mfrs,
@@ -433,14 +507,13 @@ public class MaterialService {
                                                          String enableSerialNumber, String enableBatchNumber, Integer offset, Integer rows) throws Exception{
         List<MaterialVo4Unit> list =null;
         try{
-            List<Long> idList = new ArrayList<>();
-            if(categoryId!=null){
-                Long parentId = categoryId;
-                idList = getListByParentId(parentId);
-            }
+            List<Long> idList = getEffectiveCategoryIdsByCategoryId(categoryId);
             if(StringUtil.isNotEmpty(q)) {
                 q = q.replace("'", "");
                 q = q.trim();
+            }
+            if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+                return new ArrayList<>();
             }
             list=  materialMapperEx.findBySelectWithBarCode(idList, q, standardOrModel, color, brand, mfrs,
                     otherField1, otherField2, otherField3, enableSerialNumber, enableBatchNumber, offset, rows);
@@ -455,13 +528,12 @@ public class MaterialService {
                                             String enableSerialNumber, String enableBatchNumber) throws Exception{
         int result=0;
         try{
-            List<Long> idList = new ArrayList<>();
-            if(categoryId!=null){
-                Long parentId = categoryId;
-                idList = getListByParentId(parentId);
-            }
+            List<Long> idList = getEffectiveCategoryIdsByCategoryId(categoryId);
             if(StringUtil.isNotEmpty(q)) {
                 q = q.replace("'", "");
+            }
+            if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+                return 0;
             }
             result = materialMapperEx.findBySelectWithBarCodeCount(idList, q, standardOrModel, color, brand, mfrs,
                     otherField1, otherField2, otherField3, enableSerialNumber, enableBatchNumber);
@@ -478,9 +550,9 @@ public class MaterialService {
                                              String expiryNum, String enabled, String enableSerialNumber, String enableBatchNumber,
                                              String remark, String mpList, HttpServletResponse response)throws Exception {
         String title = "商品信息";
-        List<Long> idList = new ArrayList<>();
-        if(StringUtil.isNotEmpty(categoryId)){
-            idList = getListByParentId(Long.parseLong(categoryId));
+        List<Long> idList = getEffectiveCategoryIdsByCategoryId(StringUtil.isNotEmpty(categoryId) ? Long.parseLong(categoryId) : null);
+        if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+            idList = Collections.singletonList(-1L);
         }
         //查询商品主条码相关列表
         List<MaterialVo4Unit> dataList = materialMapperEx.exportExcel(materialParam, color, materialOther, weight, expiryNum, enabled, enableSerialNumber,
@@ -1364,6 +1436,10 @@ public class MaterialService {
     public List<MaterialVo4Unit> getListWithStock(List<Long> depotList, List<Long> idList, String position, String materialParam,
                                                   Boolean moveAvgPriceFlag, Integer zeroStock, String column, String order,
                                                   Integer offset, Integer rows) throws Exception {
+        idList = getEffectiveCategoryIds(idList);
+        if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+            return new ArrayList<>();
+        }
         Map<Long, BigDecimal> initialStockMap = new HashMap<>();
         List<MaterialInitialStockWithMaterial> initialStockList = getInitialStockWithMaterial(depotList);
         for (MaterialInitialStockWithMaterial mism: initialStockList) {
@@ -1387,11 +1463,29 @@ public class MaterialService {
     }
 
     public int getListWithStockCount(List<Long> depotList, List<Long> idList, String position, String materialParam, Integer zeroStock) {
-        return materialMapperEx.getListWithStockCount(depotList, idList, position, materialParam, zeroStock);
+        try {
+            idList = getEffectiveCategoryIds(idList);
+            if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+                return 0;
+            }
+            return materialMapperEx.getListWithStockCount(depotList, idList, position, materialParam, zeroStock);
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+            return 0;
+        }
     }
 
     public MaterialVo4Unit getTotalStockAndPrice(List<Long> depotList, List<Long> idList, String position, String materialParam) {
-        return materialMapperEx.getTotalStockAndPrice(depotList, idList, position, materialParam);
+        try {
+            idList = getEffectiveCategoryIds(idList);
+            if(hasCurrentUserMaterialCategoryLimit() && idList.isEmpty()) {
+                return new MaterialVo4Unit();
+            }
+            return materialMapperEx.getTotalStockAndPrice(depotList, idList, position, materialParam);
+        } catch (Exception e) {
+            JshException.readFail(logger, e);
+            return new MaterialVo4Unit();
+        }
     }
 
     /**

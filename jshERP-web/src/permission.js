@@ -10,13 +10,25 @@ NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['/user/login', '/user/register', '/user/register-result'] // no redirect whitelist
 
+function isCustomerUser() {
+  return !!Vue.ls.get('customerId')
+}
+
 router.beforeEach((to, from, next) => {
   NProgress.start() // start progress bar
   if (Vue.ls.get(USER_ID)) {
     /* has token */
     if (to.path === '/' || to.path === '/user/login') {
-      next({ path: INDEX_MAIN_PAGE_PATH })
+      // 客户用户跳转到客户门户
+      if (isCustomerUser()) {
+        next({ path: '/customer/dashboard' })
+      } else {
+        next({ path: INDEX_MAIN_PAGE_PATH })
+      }
       NProgress.done()
+    } else if (to.path.startsWith('/customer')) {
+      // 客户门户路由，直接放行（不需要加载ERP菜单）
+      next()
     } else {
       if (store.getters.permissionList.length === 0) {
         store.dispatch('GetPermissionList').then(res => {

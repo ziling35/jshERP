@@ -262,7 +262,7 @@
             <!-- 表单区域 -->
             <batch-set-stock-modal ref="stockModalForm" @ok="batchSetStockModalFormOk"></batch-set-stock-modal>
           </a-tab-pane>
-          <a-tab-pane key="3" tab="图片信息" forceRender>
+          <a-tab-pane key="3" tab="媒体信息" forceRender>
             <a-row class="form-row" :gutter="24" style="padding-top:20px">
               <a-col :lg="18" :md="18" :sm="24">
                 <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="图片信息">
@@ -273,8 +273,46 @@
             </a-row>
             <a-row class="form-row" :gutter="24">
               <a-col :lg="18" :md="18" :sm="24">
+                <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="图片预览">
+                  <div class="media-preview-wrap" v-if="imagePreviewList.length">
+                    <div class="media-preview-item" v-for="(img, index) in imagePreviewList" :key="img + index">
+                      <img :src="getImagePreviewUrl(img)" class="media-preview-image" />
+                    </div>
+                  </div>
+                  <span v-else>暂无图片</span>
+                </a-form-item>
+              </a-col>
+              <a-col :lg="6" :md="6" :sm="24"></a-col>
+            </a-row>
+            <a-row class="form-row" :gutter="24">
+              <a-col :lg="18" :md="18" :sm="24">
+                <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="视频上传">
+                  <j-upload v-model="videoUrl" bizPath="material" text="上传视频" fileType="video" :number="1"></j-upload>
+                </a-form-item>
+              </a-col>
+              <a-col :lg="6" :md="6" :sm="24"></a-col>
+            </a-row>
+            <a-row class="form-row" :gutter="24">
+              <a-col :lg="18" :md="18" :sm="24">
+                <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="视频地址">
+                  <a-input v-model="videoUrl" placeholder="可上传视频，也可填写外部 mp4 / webm 地址"></a-input>
+                </a-form-item>
+              </a-col>
+              <a-col :lg="6" :md="6" :sm="24"></a-col>
+            </a-row>
+            <a-row class="form-row" :gutter="24">
+              <a-col :lg="18" :md="18" :sm="24">
+                <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="视频预览">
+                  <video v-if="videoUrl" :src="getVideoPreviewUrl(videoUrl)" class="media-preview-video" controls preload="metadata"></video>
+                  <span v-else>暂无视频</span>
+                </a-form-item>
+              </a-col>
+              <a-col :lg="6" :md="6" :sm="24"></a-col>
+            </a-row>
+            <a-row class="form-row" :gutter="24">
+              <a-col :lg="18" :md="18" :sm="24">
                 <a-form-item :labelCol="{xs: { span: 24 },sm: { span: 3 }}" :wrapperCol="{xs: { span: 24 },sm: { span: 20 }}" label="上传提示">
-                  图片最多4张，且单张大小不超过1M
+                  图片最多4张，且单张大小不超过1M；视频支持直接上传或填写外部可访问地址
                 </a-form-item>
               </a-col>
               <a-col :lg="6" :md="6" :sm="24"></a-col>
@@ -297,6 +335,7 @@
   import { autoJumpNextInput, handleIntroJs, removeByVal, addBigNumbers } from '@/utils/util'
   import { getAction, httpAction } from '@/api/manage'
   import JImageUpload from '@/components/jeecg/JImageUpload'
+  import JUpload from '@/components/jeecg/JUpload'
   import JDate from '@/components/jeecg/JDate'
   import Vue from 'vue'
 
@@ -307,6 +346,7 @@
       BatchSetStockModal,
       UnitModal,
       JImageUpload,
+      JUpload,
       JDate,
       JEditableTable,
       VNodes: {
@@ -326,6 +366,7 @@
         unitList: [],
         depotList: [],
         fileList:[],
+        videoUrl: '',
         unitStatus: false,
         manyUnitStatus: true,
         unitChecked: false,
@@ -510,10 +551,12 @@
         this.modalStyle = 'top:20px;height: 95%;'
         if(JSON.stringify(record) === '{}') {
           this.fileList = []
+          this.videoUrl = ''
         } else {
           if(this.action === 'edit') {
             setTimeout(() => {
               this.fileList = record.imgName
+              this.videoUrl = record.videoUrl || ''
             }, 5)
           }
         }
@@ -789,6 +832,7 @@
               } else {
                 formData.imgName = ''
               }
+              formData.videoUrl = this.videoUrl ? this.videoUrl.trim() : ''
               formData.meDeleteIdList = this.meDeleteIdList
               //接口调用
               let url = this.url.add, method = 'post'
@@ -815,6 +859,18 @@
       },
       parseParam(param) {
         return param ? param: ""
+      },
+      getImagePreviewUrl(imgName) {
+        return imgName ? window._CONFIG['domianURL'] + '/systemConfig/static/large' + imgName : ''
+      },
+      getVideoPreviewUrl(videoUrl) {
+        if(!videoUrl) {
+          return ''
+        }
+        if(videoUrl.indexOf('http') === 0) {
+          return videoUrl
+        }
+        return window._CONFIG['domianURL'] + '/systemConfig/static/' + videoUrl
       },
       validateBarCode(type, value, row, column, callback, target) {
         let params = {
@@ -1339,10 +1395,23 @@
       unitModalFormOk() {
         this.loadUnitListData()
       }
+    },
+    computed: {
+      imagePreviewList() {
+        if(!this.fileList) {
+          return []
+        }
+        if(Array.isArray(this.fileList)) {
+          return this.fileList.filter(item => !!item)
+        }
+        return this.fileList.split(',').map(item => item && item.trim()).filter(item => !!item)
+      }
     }
   }
 </script>
+
 <style scoped>
+
   .input-table {
     max-width: 100%;
     min-width: 1200px;
@@ -1356,4 +1425,31 @@
     color: #bbb;
     background-color: #ffffff;
   }
+.media-preview-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.media-preview-item {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+.media-preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.media-preview-video {
+  width: 360px;
+  max-width: 100%;
+  border-radius: 4px;
+  background: #000;
+}
 </style>

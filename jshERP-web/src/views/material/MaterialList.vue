@@ -179,10 +179,18 @@
             <template slot="customPic" slot-scope="text, record">
               <a-popover placement="right" trigger="click">
                 <template slot="content">
-                  <img :src="getImgUrl(record.imgName, record.imgLarge)" width="500px" />
+                  <div class="media-popover">
+                    <img v-if="record.imgName" :src="getImgUrl(record.imgName, record.imgLarge)" class="media-popover-image" />
+                    <video v-if="record.videoUrl" :src="getVideoUrl(record.videoUrl)" class="media-popover-video" controls preload="metadata"></video>
+                    <span v-if="!record.imgName && !record.videoUrl">暂无媒体</span>
+                  </div>
                 </template>
-                <div class="item-info" v-if="record.imgName">
-                  <img v-if="record.imgName" :src="getImgUrl(record.imgName, record.imgSmall)" class="item-img" title="查看大图" />
+                <div class="media-cell">
+                  <div class="item-info" v-if="record.imgName">
+                    <img :src="getImgUrl(record.imgName, record.imgSmall)" class="item-img" title="查看媒体" />
+                  </div>
+                  <div v-if="record.videoUrl" class="video-flag">视</div>
+                  <div v-if="!record.imgName && !record.videoUrl" class="media-empty">无</div>
                 </div>
               </a-popover>
             </template>
@@ -299,7 +307,7 @@
             width: 100,
             scopedSlots: { customRender: 'action' },
           },
-          {title: '图片', dataIndex: 'pic', width: 60, scopedSlots: { customRender: 'customPic' }},
+          {title: '媒体', dataIndex: 'pic', width: 70, scopedSlots: { customRender: 'customPic' }},
           {title: '条码', dataIndex: 'mBarCode', width: 120},
           {title: '名称', dataIndex: 'name', width: 160, scopedSlots: { customRender: 'customName' }},
           {title: '规格', dataIndex: 'standard', width: 120},
@@ -508,6 +516,15 @@
           return ''
         }
       },
+      getVideoUrl(videoUrl) {
+        if(!videoUrl) {
+          return ''
+        }
+        if(videoUrl.indexOf('http') === 0) {
+          return videoUrl
+        }
+        return getFileAccessHttpUrl('systemConfig/static/' + videoUrl)
+      },
       handleImportXls() {
         let importExcelUrl = this.url.importExcelUrl
         let templateUrl = '/doc/goods_template.xls'
@@ -528,6 +545,12 @@
   @import '~@assets/less/common.less'
 </style>
 <style>
+  .media-cell {
+    display:flex;
+    align-items:center;
+    gap:4px;
+    min-height:38px;
+  }
   .item-info {
     float:left;
     width:38px;
@@ -541,5 +564,34 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+  }
+  .video-flag {
+    width:20px;
+    height:20px;
+    line-height:20px;
+    text-align:center;
+    border-radius:50%;
+    background:#1890ff;
+    color:#fff;
+    font-size:12px;
+  }
+  .media-empty {
+    color:#999;
+    font-size:12px;
+  }
+  .media-popover {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    max-width:520px;
+  }
+  .media-popover-image {
+    width:500px;
+    max-width:100%;
+  }
+  .media-popover-video {
+    width:500px;
+    max-width:100%;
+    background:#000;
   }
 </style>

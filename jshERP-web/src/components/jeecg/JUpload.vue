@@ -35,7 +35,8 @@
       </template>
     </a-upload>
     <a-modal :visible="previewVisible" :width="1000" :footer="null" @cancel="handleCancel">
-      <img alt="example" style="width: 100%" :src="previewImage" />
+      <img v-if="previewFileType==='image'" alt="example" style="width: 100%" :src="previewImage" />
+      <video v-else-if="previewFileType==='video'" style="width: 100%;background: #000" :src="previewImage" controls preload="metadata"></video>
     </a-modal>
   </div>
 </template>
@@ -49,6 +50,7 @@
 
   const FILE_TYPE_ALL = "all"
   const FILE_TYPE_IMG = "image"
+  const FILE_TYPE_VIDEO = "video"
   const FILE_TYPE_TXT = "file"
   const uidGenerator=()=>{
     return '-'+parseInt(Math.random()*10000+1,10);
@@ -70,6 +72,7 @@
         newFileList: [],
         uploadGoOn:true,
         previewVisible: false,
+        previewFileType: '',
         //---------------------------- begin 图片左右换位置 -------------------------------------
         previewImage: '',
         containerId:'',
@@ -253,6 +256,16 @@
             return false;
           }
         }
+        if(this.fileType===FILE_TYPE_VIDEO){
+          let fileName = file.name ? file.name.toLowerCase() : ''
+          let isVideoType = fileType && fileType.indexOf('video') === 0
+          let isVideoExt = fileName.endsWith('.mp4') || fileName.endsWith('.webm') || fileName.endsWith('.ogg') || fileName.endsWith('.mov')
+          if(!isVideoType && !isVideoExt){
+            this.$message.warning('请上传视频文件，支持 mp4/webm/ogg/mov');
+            this.uploadGoOn=false
+            return false;
+          }
+        }
         //验证文件大小
         if(fileSize>this.sizeLimit) {
           let parseSizeLimit = (this.sizeLimit/1024/1024).toFixed(2)
@@ -312,17 +325,22 @@
         console.log(file)
       },
       handlePreview(file){
-        let postfix = file.name.substring(file.name.lastIndexOf('.'))
-        if(postfix === '.gif' || postfix === '.jpg' || postfix === '.jpeg' || postfix === '.png' ||
-          postfix === '.GIF' || postfix === '.JPG' || postfix === '.JPEG' || postfix === '.PNG') {
+        let postfix = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
+        if(postfix === '.gif' || postfix === '.jpg' || postfix === '.jpeg' || postfix === '.png') {
+          this.previewFileType = 'image'
           this.previewImage = file.url || file.thumbUrl;
           this.previewVisible = true;
-        }else{
+        } else if(postfix === '.mp4' || postfix === '.webm' || postfix === '.ogg' || postfix === '.mov') {
+          this.previewFileType = 'video'
+          this.previewImage = file.url || file.thumbUrl;
+          this.previewVisible = true;
+        } else {
           location.href=file.url
         }
       },
       handleCancel(){
         this.previewVisible = false;
+        this.previewFileType = '';
       },
       //---------------------------- begin 图片左右换位置 -------------------------------------
       moveLast(){

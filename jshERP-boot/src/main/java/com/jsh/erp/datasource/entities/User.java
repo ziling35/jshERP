@@ -29,6 +29,8 @@ public class User {
 
     private String remark;
 
+    private Long customerId;
+
     private String weixinOpenId;
 
     private Long tenantId;
@@ -145,6 +147,14 @@ public class User {
 
     public void setRemark(String remark) {
         this.remark = remark == null ? null : remark.trim();
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
     }
 
     public String getWeixinOpenId() {
